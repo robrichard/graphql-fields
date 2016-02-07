@@ -1,0 +1,31 @@
+{
+  "name": "graphql-fields",
+  "version": "1.0.0",
+  "description": "Turns GraphQLResolveInfo into a map of the requested fields",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robrichard/graphql-fields.git"
+  },
+  "keywords": [
+    "graphql",
+    "graphql-js",
+    "graphqlresolveinfo",
+    "fields",
+    "schema",
+    "ast"
+  ],
+  "author": "Rob Richard",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/robrichard/graphql-fields/issues"
+  },
+  "homepage": "https://github.com/robrichard/graphql-fields#readme",
+  "devDependencies": {
+    "graphql": "^0.4.16",
+    "mocha": "^2.4.5"
+  }
+}
