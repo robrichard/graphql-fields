@@ -77,6 +77,39 @@ will log
 
 ```
 
+## Why
+An underlying REST api may only return fields based on query params.
+```graphql
+{
+  user {
+    profile {
+      firstName
+    },
+    id
+  }
+}
+```
+should request /api/user?fields=profile,id
+
+while 
+```graphql
+{
+  user {
+    email
+  }
+}
+```
+should request /api/user?fields=email
+
+Implement your resolve method like so:
+
+```
+resolve(root, args, info) {
+    const topLevelFields = Object.keys(graphqlFields(info})
+    return fetch(`/api/user?fields=${topLevelFields.join(',}`);
+}
+```
+
 ## Tests
 ```
 npm test
