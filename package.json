@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/robrichard/graphql-fields#readme",
   "devDependencies": {
-    "graphql": "^0.4.16",
+    "graphql": "^0.6.2",
     "mocha": "^2.4.5"
   }
 }

@@ -22,7 +22,7 @@ module.exports = new graphql.GraphQLObjectType({
         email: {type: graphql.GraphQLString},
         id: {type: graphql.GraphQLID}
     },
-    resolve(root, args, info) {
+    resolve(root, args, context, info) {
       console.log(
         JSON.stringify(graphqlFields(info), null, 2);
       );
@@ -91,7 +91,7 @@ An underlying REST api may only return fields based on query params.
 ```
 should request /api/user?fields=profile,id
 
-while 
+while
 ```graphql
 {
   user {
@@ -104,7 +104,7 @@ should request /api/user?fields=email
 Implement your resolve method like so:
 
 ```
-resolve(root, args, info) {
+resolve(root, args, context, info) {
     const topLevelFields = Object.keys(graphqlFields(info})
     return fetch(`/api/user?fields=${topLevelFields.join(',}`);
 }
