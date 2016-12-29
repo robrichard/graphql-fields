@@ -45,7 +45,8 @@ function flattenAST(ast, info, obj) {
 
 module.exports = function graphqlFields(info, obj) {
     obj = obj || {};
-    return info.fieldASTs.reduce((o, ast) => {
+    const fields = info.fieldNodes || info.fieldASTs;
+    return fields.reduce((o, ast) => {
             return flattenAST(ast, info, o);
     }, obj) || {};
 };
