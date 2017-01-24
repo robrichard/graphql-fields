@@ -105,8 +105,8 @@ Implement your resolve method like so:
 
 ```
 resolve(root, args, context, info) {
-    const topLevelFields = Object.keys(graphqlFields(info})
-    return fetch(`/api/user?fields=${topLevelFields.join(',}`);
+    const topLevelFields = Object.keys(graphqlFields(info));
+    return fetch(`/api/user?fields=${topLevelFields.join(',')}`);
 }
 ```
 
