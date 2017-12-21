@@ -8,7 +8,7 @@ Schema Type definition
 const graphqlFields = require('graphql-fields');
 const graphql = require('graphql')
 
-module.exports = new graphql.GraphQLObjectType({
+const UserType = new graphql.GraphQLObjectType({
     name: 'User',
     fields: {
         profile: {type: new graphql.GraphQLObjectType({
@@ -21,14 +21,26 @@ module.exports = new graphql.GraphQLObjectType({
         }),
         email: {type: graphql.GraphQLString},
         id: {type: graphql.GraphQLID}
-    },
-    resolve(root, args, context, info) {
-      console.log(
-        JSON.stringify(graphqlFields(info), null, 2);
-      );
-      ...
     }
 });
+
+module.exports = new GraphQLSchema({
+    query: new GraphQLObjectType({
+        name: 'Query',
+        fields: () =>
+            Object.assign({
+                user: {
+                    type: UserType,
+                    resolve(root, args, context, info) {
+                        console.log(
+                            JSON.stringify(graphqlFields(info), null, 2);
+                        );
+                        ...
+                    }
+                }
+            })
+    })
+})
 ```
 
 Query
