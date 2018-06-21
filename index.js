@@ -17,7 +17,7 @@ function isFragment(ast) {
 
 function getAST(ast, info) {
     if (ast.kind === 'FragmentSpread') {
-        const fragmentName = ast.name.value;
+        const fragmentName = ast.alias ? ast.alias.value : ast.name.value;
         return info.fragments[fragmentName];
     }
     return ast;
@@ -30,7 +30,7 @@ function flattenAST(ast, info, obj) {
         if (isFragment(a)) {
             flattened = flattenAST(getAST(a, info), info, flattened);
         } else {
-            const name = a.name.value;
+            const name = a.alias ? a.alias.value : a.name.value;
             if (flattened[name]) {
                 Object.assign(flattened[name], flattenAST(a, info, flattened[name]));
             } else {

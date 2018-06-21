@@ -7,9 +7,11 @@ const assert = require('assert');
 const util = require('util');
 
 describe('graphqlFields', () => {
-    it('should flatten fragments', function (done) {
-        let info = {};
-        const schema = new graphql.GraphQLSchema({
+    let info = {};
+    let schema;
+
+    beforeEach(function() {
+        schema = new graphql.GraphQLSchema({
             query: new graphql.GraphQLObjectType({
                 name: 'Query',
                 fields: {
@@ -89,8 +91,9 @@ describe('graphqlFields', () => {
                 }
             })
         });
+    });
 
-
+    it('should flatten fragments', function (done) {
         const query = `
         query UsersRoute {
           viewer {
@@ -174,4 +177,31 @@ describe('graphqlFields', () => {
                 done();
             }).catch(done);
     });
+
+    it('should use field alias when it is defined in the query', function (done) {
+        const query = `
+            query UsersRoute {
+                viewer {
+                    users(userId:"123",first:25,includeInactive:true) @skip(if:false) {
+                        pageInfo {
+                            total:totalResults
+                        }
+                    }
+                }
+            }
+        `;
+
+        graphql.graphql(schema, query, null, {})
+            .then(() => {
+                const expected = {
+                    users: {
+                        pageInfo: {
+                            total: {}
+                        }
+                    }
+                };
+                assert.deepStrictEqual(graphqlFields(info), expected);
+                done();
+            }).catch(done);
+    })
 });
