@@ -2,9 +2,11 @@
   "name": "graphql-fields",
   "version": "1.0.2",
   "description": "Turns GraphQLResolveInfo into a map of the requested fields",
-  "main": "index.js",
+  "main": "build/index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "build": "babel index.js --out-dir build",
+      "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -18,6 +20,9 @@
     "schema",
     "ast"
   ],
+  "files": [
+    "build/*"
+  ],
   "author": "Rob Richard",
   "license": "MIT",
   "bugs": {
@@ -25,6 +30,9 @@
   },
   "homepage": "https://github.com/robrichard/graphql-fields#readme",
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-object-assign": "^6.22.0",
+    "babel-preset-env": "^1.7.0",
     "graphql": "^0.6.2",
     "mocha": "^2.4.5"
   }

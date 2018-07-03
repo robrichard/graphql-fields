@@ -1,0 +1,14 @@
+{
+    "presets": [
+        [
+            "env",
+            {
+                "targets": {
+                    "browsers": ["last 2 versions"],
+                    "node": "current"
+                }
+            }
+        ]
+    ],
+    "plugins": ["transform-object-assign"]
+}
