@@ -1,6 +1,6 @@
 {
   "name": "graphql-fields",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Turns GraphQLResolveInfo into a map of the requested fields",
   "main": "build/index.js",
   "scripts": {
