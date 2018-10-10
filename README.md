@@ -115,7 +115,7 @@ It will be an array with the following format:
 ]
 ```
 
-The kind property is here to help differenciate value cast to strings by javascript clients, surch as enum values.
+The kind property is here to help differentiate value cast to strings by javascript clients, such as enum values.
 
 ## Why
 An underlying REST api may only return fields based on query params.
