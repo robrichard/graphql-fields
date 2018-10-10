@@ -19,9 +19,9 @@ describe('graphqlFields', () => {
                             fields: {
                                 users: {
                                     args: {
-                                        userId: {type: graphql.GraphQLString},
-                                        first: {type: graphql.GraphQLInt},
-                                        includeInactive: {type: graphql.GraphQLBoolean}
+                                        userId: { type: graphql.GraphQLString },
+                                        first: { type: graphql.GraphQLInt },
+                                        includeInactive: { type: graphql.GraphQLBoolean }
                                     },
                                     type: new graphql.GraphQLObjectType({
                                         name: 'UserConnection',
@@ -30,7 +30,7 @@ describe('graphqlFields', () => {
                                                 type: new graphql.GraphQLObjectType({
                                                     name: 'PageInfo',
                                                     fields: {
-                                                        totalResults: {type: graphql.GraphQLInt}
+                                                        totalResults: { type: graphql.GraphQLInt }
                                                     }
                                                 })
                                             },
@@ -39,7 +39,7 @@ describe('graphqlFields', () => {
                                                     new graphql.GraphQLObjectType({
                                                         name: 'UserEdge',
                                                         fields: {
-                                                            cursor: {type: graphql.GraphQLString},
+                                                            cursor: { type: graphql.GraphQLString },
                                                             node: {
                                                                 type: new graphql.GraphQLObjectType({
                                                                     name: 'User',
@@ -48,7 +48,7 @@ describe('graphqlFields', () => {
                                                                             type: new graphql.GraphQLObjectType({
                                                                                 name: 'AddressBook',
                                                                                 fields: {
-                                                                                    apiType: {type: graphql.GraphQLString}
+                                                                                    apiType: { type: graphql.GraphQLString }
                                                                                 }
                                                                             })
                                                                         },
@@ -56,8 +56,8 @@ describe('graphqlFields', () => {
                                                                             type: new graphql.GraphQLObjectType({
                                                                                 name: 'Profile',
                                                                                 fields: {
-                                                                                    displayName: {type: graphql.GraphQLString},
-                                                                                    email: {type: graphql.GraphQLString}
+                                                                                    displayName: { type: graphql.GraphQLString },
+                                                                                    email: { type: graphql.GraphQLString }
                                                                                 }
                                                                             })
                                                                         },
@@ -65,7 +65,7 @@ describe('graphqlFields', () => {
                                                                             type: new graphql.GraphQLObjectType({
                                                                                 name: 'ProProfile',
                                                                                 fields: {
-                                                                                    apiType: {type: graphql.GraphQLString}
+                                                                                    apiType: { type: graphql.GraphQLString }
                                                                                 }
                                                                             })
                                                                         }
@@ -173,5 +173,98 @@ describe('graphqlFields', () => {
                 assert.deepStrictEqual(graphqlFields(info), expected);
                 done();
             }).catch(done);
+    });
+
+    describe('subfield argument parsing', function () {
+        let info = {};
+        const schemaString = /* GraphQL*/ `
+            type Hobbie {
+                name: String!
+            }
+            type Person {
+                name (case: String): String!
+                age: Int!
+                hobbies(first: Int, sort: Boolean): [Hobbie!]
+            }
+            type Query {
+                person: Person!
+            }
+        `;
+        const schema = graphql.buildSchema(schemaString);
+        const root = {
+            person(args, ctx, i) {
+                info = i;
+                return {
+                    name: 'john doe',
+                    age: 42,
+                };
+            },
+        };
+        const query = /* GraphQL */ `
+            {
+                person {
+                    name (case: "upper")
+                    age
+                    hobbies (first: 2, sort: true) {
+                        name
+                    }
+                }
+            }
+        `;
+        it('Should extract sub-field arguments if options is provided', function (done) {
+            const expected = {
+                name: {
+                    __arguments: [{
+                        case: {
+                            kind: 'StringValue',
+                            value: 'upper',
+                        },
+                    }],
+                },
+                age: {},
+                hobbies: {
+                    name: {},
+                    __arguments: [
+                        {
+                            first: {
+                                kind: 'IntValue',
+                                value: '2',
+                            }
+                        },
+                        {
+                            sort: {
+                                kind: 'BooleanValue',
+                                value: true,
+                            }
+                        }
+                    ],
+                }
+            };
+            graphql.graphql(schema, query, root, {})
+                .then(() => {
+                    const fields = graphqlFields(info, {}, { processArguments: true });
+                    assert.deepStrictEqual(fields, expected);
+                    done();
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        });
+
+        it('should not parse arguments if not specified in options', function (done) {
+            const expected = {
+                name: {},
+                age: {},
+                hobbies: {
+                    name: {},
+                }
+            };
+            graphql.graphql(schema, query, root, {})
+                .then(() => {
+                    const fields = graphqlFields(info);
+                    assert.deepStrictEqual(fields, expected);
+                    done();
+                })
+        });
     });
 });
