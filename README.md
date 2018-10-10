@@ -88,6 +88,34 @@ will log
 }
 
 ```
+### subfields arguments
+
+To enable subfields arguments parsing, you'll have to provide an option object to the function. This feature is disable by default.
+```javascript
+const graphqlFields = require('graphql-fields');
+const fieldsWithSubFieldsArgs = graphqlFields(info, {}, { processArguments: true });
+```
+
+For each subfield w/ arguments, a `__arguments` property will be created.
+It will be an array with the following format:
+```javascript
+[
+    {
+        arg1Name: {
+            kind: ARG1_KIND,
+            value: ARG1_VALUE,
+        },
+    },
+    {
+        arg2Name: {
+            kind: ARG2_KIND,
+            value: ARG2_VALUE,
+        }
+    }
+]
+```
+
+The kind property is here to help differentiate value cast to strings by javascript clients, such as enum values.
 
 ## Why
 An underlying REST api may only return fields based on query params.
