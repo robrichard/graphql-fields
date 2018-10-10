@@ -245,9 +245,6 @@ describe('graphqlFields', () => {
                     const fields = graphqlFields(info, {}, { processArguments: true });
                     assert.deepStrictEqual(fields, expected);
                     done();
-                })
-                .catch(error => {
-                    console.error(error);
                 });
         });
 
