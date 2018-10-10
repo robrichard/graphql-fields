@@ -1,5 +1,5 @@
 'use strict';
-
+const options = {};
 function getSelections(ast) {
     if (ast &&
         ast.selectionSet &&
@@ -23,6 +23,16 @@ function getAST(ast, info) {
     return ast;
 }
 
+function getArguments (ast) {
+    return ast.arguments.map(argument => {
+        return {
+            [argument.name.value]: {
+                kind: argument.value.kind,
+                value: argument.value.value,
+            },
+        };
+    });
+}
 
 function flattenAST(ast, info, obj) {
     obj = obj || {};
@@ -31,21 +41,26 @@ function flattenAST(ast, info, obj) {
             flattened = flattenAST(getAST(a, info), info, flattened);
         } else {
             const name = a.name.value;
-            if (flattened[name]) {
+            if (flattened[name] && flattened[name] !== '__arguments') {
                 Object.assign(flattened[name], flattenAST(a, info, flattened[name]));
             } else {
                 flattened[name] = flattenAST(a, info);
             }
+            if (options.processArguments) {
+                // check if the current field has arguments
+                if (a.arguments && a.arguments.length) {
+                    Object.assign(flattened[name], { __arguments: getArguments(a) });
+                }
+            }
         }
-
 
         return flattened;
     }, obj);
 }
 
-module.exports = function graphqlFields(info, obj) {
-    obj = obj || {};
+module.exports = function graphqlFields(info, obj = {}, opts = { processArguments: false }) {
     const fields = info.fieldNodes || info.fieldASTs;
+    options.processArguments = opts.processArguments;
     return fields.reduce((o, ast) => {
             return flattenAST(ast, info, o);
     }, obj) || {};
