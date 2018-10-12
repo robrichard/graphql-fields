@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.1 (2018-10-12)
+
+### Added
+
+- Updated dev dependencies
+
+
 ## 1.2.0 (2018-10-10)
 
 ### Added
