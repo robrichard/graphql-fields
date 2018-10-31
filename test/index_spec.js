@@ -264,4 +264,60 @@ describe('graphqlFields', () => {
                 })
         });
     });
+    describe('excluded fields', function () {
+        let info = {};
+        const schemaString = /* GraphQL*/ `
+            type Person {
+                name: String!
+                age: Int!
+            }
+            type Query {
+                person: Person!
+            }
+        `;
+        const schema = graphql.buildSchema(schemaString);
+        const root = {
+            person(args, ctx, i) {
+                info = i;
+                return {
+                    name: 'john doe',
+                    age: 42,
+                };
+            },
+        };
+        const query = /* GraphQL */ `
+            {
+                person {
+                    name
+                    age
+                    __typename
+                }
+            }
+        `;
+        it('Should exclude fields', function (done) {
+            const expected = {
+                name: {},
+            };
+            graphql.graphql(schema, query, root, {})
+                .then(() => {
+                    const fields = graphqlFields(info, {}, { excludedFields: ['__typename', 'age'] });
+                    assert.deepStrictEqual(fields, expected);
+                    done();
+                });
+        });
+
+        it('Should not exculde fields if not specified in options', function (done) {
+            const expected = {
+                name: {},
+                age: {},
+                __typename: {},
+            };
+            graphql.graphql(schema, query, root, {})
+                .then(() => {
+                    const fields = graphqlFields(info);
+                    assert.deepStrictEqual(fields, expected);
+                    done();
+                })
+        });
+    });
 });
