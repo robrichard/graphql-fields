@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0 (2018-11-15)
+
+### Added
+
+- excludedFields option
+
+
 ## 1.2.1 (2018-10-12)
 
 ### Added
