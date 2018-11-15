@@ -41,6 +41,9 @@ function flattenAST(ast, info, obj) {
             flattened = flattenAST(getAST(a, info), info, flattened);
         } else {
             const name = a.name.value;
+            if (options.excludedFields.indexOf(name) !== -1) {
+              return flattened;
+            }
             if (flattened[name] && flattened[name] !== '__arguments') {
                 Object.assign(flattened[name], flattenAST(a, info, flattened[name]));
             } else {
@@ -61,6 +64,7 @@ function flattenAST(ast, info, obj) {
 module.exports = function graphqlFields(info, obj = {}, opts = { processArguments: false }) {
     const fields = info.fieldNodes || info.fieldASTs;
     options.processArguments = opts.processArguments;
+    options.excludedFields = opts.excludedFields || [];
     return fields.reduce((o, ast) => {
             return flattenAST(ast, info, o);
     }, obj) || {};

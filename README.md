@@ -117,6 +117,12 @@ It will be an array with the following format:
 
 The kind property is here to help differentiate value cast to strings by javascript clients, such as enum values.
 
+### Exclude specific fields 
+Most of the time we don't need `__typename` to be sent to backend/rest api, we can exclude `__typename` using this:
+```javascript
+const graphqlFields = require('graphql-fields');
+const fieldsWithoutTypeName = graphqlFields(info, {}, { excludedFields: ['__typename'] });
+```
 ## Why
 An underlying REST api may only return fields based on query params.
 ```graphql
