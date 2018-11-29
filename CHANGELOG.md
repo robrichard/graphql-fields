@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.0 (2018-11-29)
+
+### Added
+
+- @skip and @include directive parsing
+
 ## 1.3.0 (2018-11-15)
 
 ### Added

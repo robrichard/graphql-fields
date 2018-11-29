@@ -34,7 +34,7 @@ function getArguments (ast) {
     });
 }
 
-function getDirectiveValue(directive, info, defaultVal) {
+function getDirectiveValue(directive, info) {
     const arg = directive.arguments[0]; // only arg on an include or skip directive is "if"
     if (arg.value.kind !== "Variable") {
         return !!arg.value.value;
