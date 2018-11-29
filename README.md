@@ -1,5 +1,5 @@
 # graphql-fields
-Turns GraphQLResolveInfo into a map of the requested fields. Flattens all fragments and duplicated fields into a neat object to easily see which fields were requested at any level.
+Turns GraphQLResolveInfo into a map of the requested fields. Flattens all fragments and duplicated fields into a neat object to easily see which fields were requested at any level. Takes into account any `@include` or `@skip` directives, excluding fields/fragments which are `@include(if: $false)` or `@skip(if: $true)`.
 
 ## Usage
 
@@ -16,7 +16,9 @@ const UserType = new graphql.GraphQLObjectType({
           fields: {
             firstName: {type: graphql.GraphQLString},
             lastName: {type: graphql.GraphQLString},
-            middleName: {type: graphql.GraphQLString}
+            middleName: {type: graphql.GraphQLString},
+            nickName: {type: graphql.GraphQLString},
+            maidenName: {type: graphql.GraphQLString}
           }
         }),
         email: {type: graphql.GraphQLString},
@@ -65,12 +67,14 @@ fragment A on User {
 
 Fragment B on Profile {
   firstName
+  nickName @skip(if: true)
 }
 
 Fragment C on User {
   email,
   profile {
     middleName
+    maidenName @include(if: false)
   }
 }
 ```

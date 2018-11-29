@@ -176,244 +176,73 @@ describe('graphqlFields', () => {
     });
     describe('should respect include/skip directives when generating the field map', () => {
       let info = {};
-      const schema = new graphql.GraphQLSchema({
-          query: new graphql.GraphQLObjectType({
-              name: 'Query',
-              fields: {
-                  viewer: {
-                      type: new graphql.GraphQLObjectType({
-                          name: 'Viewer',
-                          fields: {
-                              users: {
-                                  args: {
-                                      userId: { type: graphql.GraphQLString },
-                                      first: { type: graphql.GraphQLInt },
-                                      includeInactive: { type: graphql.GraphQLBoolean }
-                                  },
-                                  type: new graphql.GraphQLObjectType({
-                                      name: 'UserConnection',
-                                      fields: {
-                                          pageInfo: {
-                                              type: new graphql.GraphQLObjectType({
-                                                  name: 'PageInfo',
-                                                  fields: {
-                                                      totalResults: { type: graphql.GraphQLInt }
-                                                  }
-                                              })
-                                          },
-                                          edges: {
-                                              type: new graphql.GraphQLList(
-                                                  new graphql.GraphQLObjectType({
-                                                      name: 'UserEdge',
-                                                      fields: {
-                                                          cursor: { type: graphql.GraphQLString },
-                                                          node: {
-                                                              type: new graphql.GraphQLObjectType({
-                                                                  name: 'User',
-                                                                  fields: {
-                                                                      addressBook: {
-                                                                          type: new graphql.GraphQLObjectType({
-                                                                              name: 'AddressBook',
-                                                                              fields: {
-                                                                                  apiType: { type: graphql.GraphQLString }
-                                                                              }
-                                                                          })
-                                                                      },
-                                                                      profile: {
-                                                                          type: new graphql.GraphQLObjectType({
-                                                                              name: 'Profile',
-                                                                              fields: {
-                                                                                  displayName: { type: graphql.GraphQLString },
-                                                                                  email: { type: graphql.GraphQLString }
-                                                                              }
-                                                                          })
-                                                                      },
-                                                                      proProfile: {
-                                                                          type: new graphql.GraphQLObjectType({
-                                                                              name: 'ProProfile',
-                                                                              fields: {
-                                                                                  apiType: { type: graphql.GraphQLString }
-                                                                              }
-                                                                          })
-                                                                      }
-                                                                  }
-                                                              })
-                                                          }
-                                                      }
-                                                  })
-                                              )
-                                          }
-                                      }
-                                  })
-                              }
-                          }
-                      }),
-                      resolve(root, args, context, i) {
-                          info = i;
-                          return {};
-                      }
-                  }
-              }
-          })
-      });
+      const schemaString = /* GraphQL*/ `
+            type Hobbie {
+                name: String!
+            }
+            type Person {
+                name: String!
+                age: Int!
+                hobbies: [Hobbie!]
+            }
+            type Query {
+                person: Person!
+            }
+        `;
+        const schema = graphql.buildSchema(schemaString);
+        const root = {
+            person(args, ctx, i) {
+                info = i;
+                return {
+                    name: 'john doe',
+                    age: 42,
+                };
+            },
+        };
       it('does not include fields with a false include directive', done => {
-        const query = `
-        query UsersRoute($shouldInclude: Boolean!) {
-          viewer {
-            users(userId:"123",first:25,includeInactive:true) {
-              ...A
-              ...D
-                pageInfo {
-                totalResults
-              }
-
-            }
-          }
-        }
-
-        fragment A on UserConnection {
-          edges {
-            node {
-              addressBook {
-                apiType
-              }
-            }
-          }
-          ...B
-        }
-        fragment B on UserConnection {
-          ...C
-          edges {
-            cursor
-          }
-        }
-
-        fragment C on UserConnection {
-          edges {
-            cursor
-            node {
-                profile {
-                    displayName
-                    email @include(if: false)
+        const query = /* GraphQL */ `
+            query Query($shouldInclude: Boolean!){
+                person {
+                    name @include(if: $shouldInclude)
+                    age @include(if: false) @skip(if: false)
+                    hobbies {
+                        name
+                    }
                 }
             }
-          }
-        }
-        fragment D on UserConnection {
-          edges {
-            node {
-              proProfile @include(if: $shouldInclude){
-                apiType
-              }
-            }
-          }
-          ...B
-        }
-      `;
-
-
-      graphql.graphql(schema, query, null, {}, { ["shouldInclude"]: false })
-          .then(() => {
-              const expected = {
-                  users: {
-                      pageInfo: {
-                          totalResults: {}
-                      },
-                      edges: {
-                          cursor: {},
-                          node: {
-                              addressBook: {
-                                  apiType: {}
-                              },
-                              profile: {
-                                  displayName: {},
-                              }
-                          }
-                      }
-                  }
-              };
-              assert.deepStrictEqual(graphqlFields(info), expected);
-              done();
-          }).catch(done);
+        `;
+        graphql.graphql(schema, query, root, {}, { ["shouldInclude"]: false })
+            .then(() => {
+                const expected = {
+                    hobbies: {
+                      name: {}
+                    }
+                };
+                assert.deepStrictEqual(graphqlFields(info), expected);
+                done();
+            }).catch(done);
       });
       it('does not include fields with a true skip directive', done => {
-        const query = `
-        query UsersRoute($shouldSkip: Boolean!) {
-          viewer {
-            users(userId:"123",first:25,includeInactive:true) @skip(if:false) {
-              ...A
-              ...D
-                pageInfo {
-                totalResults
-              }
-
-            }
-          }
-        }
-
-        fragment A on UserConnection {
-          edges {
-            node {
-              addressBook {
-                apiType @skip(if: $shouldSkip)
-              }
-            }
-          }
-          ...B
-        }
-        fragment B on UserConnection {
-          ...C
-          edges {
-            cursor
-          }
-        }
-
-        fragment C on UserConnection {
-          edges {
-            cursor
-            node {
-                profile {
-                    displayName
-                    email
+        const query = /* GraphQL */ `
+            query Query($shouldSkip: Boolean!){
+                person {
+                    name @skip(if: $shouldSkip)
+                    age
+                    hobbies {
+                        name @skip(if: true) @include(if: true)
+                    }
                 }
             }
-          }
-        }
-        fragment D on UserConnection {
-          edges {
-            node {
-              proProfile @skip(if: true){
-                apiType
-              }
-            }
-          }
-          ...B
-        }
-      `;
-
-
-      graphql.graphql(schema, query, null, {}, { ["shouldSkip"]: true })
-          .then(() => {
-              const expected = {
-                  users: {
-                      pageInfo: {
-                          totalResults: {}
-                      },
-                      edges: {
-                          cursor: {},
-                          node: {
-                              addressBook: {},
-                              profile: {
-                                  displayName: {},
-                                  email: {}
-                              }
-                          }
-                      }
-                  }
-              };
-              assert.deepStrictEqual(graphqlFields(info), expected);
-              done();
-          }).catch(done);
+        `;
+        graphql.graphql(schema, query, root, {}, { ["shouldSkip"]: true })
+            .then(() => {
+                const expected = {
+                    age: {},
+                    hobbies: {}
+                };
+                assert.deepStrictEqual(graphqlFields(info), expected);
+                done();
+            }).catch(done);
       });
     });
     describe('subfield argument parsing', function () {
