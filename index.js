@@ -34,9 +34,42 @@ function getArguments (ast) {
     });
 }
 
+function getDirectiveValue(directive, info) {
+    const arg = directive.arguments[0]; // only arg on an include or skip directive is "if"
+    if (arg.value.kind !== "Variable") {
+        return !!arg.value.value;
+    }
+    return info.variableValues[arg.value.name.value];
+}
+
+function getDirectiveResults(ast, info) {
+    const directiveResult = {
+        shouldInclude: true,
+        shouldSkip: false,
+    };
+    return ast.directives.reduce((result, directive) => {
+        switch (directive.name.value) {
+            case "include":
+                return { ...result, shouldInclude: getDirectiveValue(directive, info) };
+            case "skip":
+                return { ...result, shouldSkip: getDirectiveValue(directive, info) };
+            default:
+                return result;
+        }
+    }, directiveResult);
+}
+
 function flattenAST(ast, info, obj) {
     obj = obj || {};
     return getSelections(ast).reduce((flattened, a) => {
+        if (a.directives && a.directives.length) {
+            const { shouldInclude, shouldSkip } = getDirectiveResults(a, info);
+            // field/fragment is not included if either the @skip condition is true or the @include condition is false
+            // https://facebook.github.io/graphql/draft/#sec--include
+            if (shouldSkip || !shouldInclude) {
+                return flattened;
+            }
+        }
         if (isFragment(a)) {
             flattened = flattenAST(getAST(a, info), info, flattened);
         } else {

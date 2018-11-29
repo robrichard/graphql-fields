@@ -174,7 +174,77 @@ describe('graphqlFields', () => {
                 done();
             }).catch(done);
     });
-
+    describe('should respect include/skip directives when generating the field map', () => {
+      let info = {};
+      const schemaString = /* GraphQL*/ `
+            type Hobbie {
+                name: String!
+            }
+            type Person {
+                name: String!
+                age: Int!
+                hobbies: [Hobbie!]
+            }
+            type Query {
+                person: Person!
+            }
+        `;
+        const schema = graphql.buildSchema(schemaString);
+        const root = {
+            person(args, ctx, i) {
+                info = i;
+                return {
+                    name: 'john doe',
+                    age: 42,
+                };
+            },
+        };
+      it('does not include fields with a false include directive', done => {
+        const query = /* GraphQL */ `
+            query Query($shouldInclude: Boolean!){
+                person {
+                    name @include(if: $shouldInclude)
+                    age @include(if: false) @skip(if: false)
+                    hobbies {
+                        name
+                    }
+                }
+            }
+        `;
+        graphql.graphql(schema, query, root, {}, { ["shouldInclude"]: false })
+            .then(() => {
+                const expected = {
+                    hobbies: {
+                      name: {}
+                    }
+                };
+                assert.deepStrictEqual(graphqlFields(info), expected);
+                done();
+            }).catch(done);
+      });
+      it('does not include fields with a true skip directive', done => {
+        const query = /* GraphQL */ `
+            query Query($shouldSkip: Boolean!){
+                person {
+                    name @skip(if: $shouldSkip)
+                    age
+                    hobbies {
+                        name @skip(if: true) @include(if: true)
+                    }
+                }
+            }
+        `;
+        graphql.graphql(schema, query, root, {}, { ["shouldSkip"]: true })
+            .then(() => {
+                const expected = {
+                    age: {},
+                    hobbies: {}
+                };
+                assert.deepStrictEqual(graphqlFields(info), expected);
+                done();
+            }).catch(done);
+      });
+    });
     describe('subfield argument parsing', function () {
         let info = {};
         const schemaString = /* GraphQL*/ `
