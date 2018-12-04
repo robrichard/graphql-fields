@@ -25,10 +25,13 @@ function getAST(ast, info) {
 
 function getArguments (ast) {
     return ast.arguments.map(argument => {
+        const argumentValue = argument.value.kind !== 'ListValue' ? argument.value.value :
+            argument.value.values.map(value => value.value);
+
         return {
             [argument.name.value]: {
                 kind: argument.value.kind,
-                value: argument.value.value,
+                value: argumentValue
             },
         };
     });

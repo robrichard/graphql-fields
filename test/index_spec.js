@@ -254,7 +254,7 @@ describe('graphqlFields', () => {
             type Person {
                 name (case: String): String!
                 age: Int!
-                hobbies(first: Int, sort: Boolean): [Hobbie!]
+                hobbies(first: Int, sort: Boolean, categories: [String]): [Hobbie!]
             }
             type Query {
                 person: Person!
@@ -275,7 +275,7 @@ describe('graphqlFields', () => {
                 person {
                     name (case: "upper")
                     age
-                    hobbies (first: 2, sort: true) {
+                    hobbies (first: 2, sort: true, categories: ["sports", "music"]) {
                         name
                     }
                 }
@@ -305,6 +305,12 @@ describe('graphqlFields', () => {
                             sort: {
                                 kind: 'BooleanValue',
                                 value: true,
+                            }
+                        },
+                        {
+                            categories: {
+                                kind: 'ListValue',
+                                value: ['sports', 'music'],
                             }
                         }
                     ],
