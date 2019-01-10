@@ -73,10 +73,10 @@ return ast;
 }
 
 function getArguments(ast: FieldNode) {
-    return ast.arguments.map(argument => {
+    return ast.arguments!.map(argument => {
         const valueNode = argument.value;
-        const argumentValue = isListValueNode(valueNode) ? (valueNode as any).value :
-        (valueNode as any).values.map(value => value.value);
+        const argumentValue = !isListValueNode(valueNode) ? (valueNode as any).value :
+            (valueNode as any).values.map(value => value.value);
 
         return {
         [argument.name.value]: {
@@ -88,7 +88,7 @@ function getArguments(ast: FieldNode) {
 }
 
 function getDirectiveValue(directive: DirectiveNode, info: GraphQLResolveInfo) {
-    const arg = directive.arguments[0]; // only arg on an include or skip directive is "if"
+    const arg = directive.arguments![0]; // only arg on an include or skip directive is "if"
     if (arg.value.kind !== 'Variable') {
         const valueNode = arg.value;
         return isValueNodeWithValueField(valueNode) ? !!valueNode.value : false;
@@ -101,7 +101,7 @@ function getDirectiveResults(ast: SelectionNode, info: GraphQLResolveInfo) {
         shouldInclude: true,
         shouldSkip: false,
     };
-    return ast.directives.reduce((result, directive) => {
+    return ast.directives!.reduce((result, directive) => {
         switch (directive.name.value) {
         case 'include':
             return { ...result, shouldInclude: getDirectiveValue(directive, info) };
@@ -147,7 +147,7 @@ function flattenAST(ast: FieldNode, info: GraphQLResolveInfo, obj: any = {}) {
     }, obj);
 }
 
-export function graphqlFields(
+function graphqlFields(
     info: GraphQLResolveInfo,
     obj: {} = {},
     opts: Partial<GraphQLFieldsOptions> = {},
@@ -156,6 +156,10 @@ export function graphqlFields(
     options.processArguments = opts.processArguments || false;
     options.excludedFields = opts.excludedFields || [];
     return fields.reduce((o, ast) => {
-    return flattenAST(ast, info, o);
+        return flattenAST(ast, info, o);
     }, obj) || {};
 }
+
+// Support `import { graphqlFields } from 'graphql-fields` syntax
+(module as any).graphqlFields = graphqlFields;
+module.exports = graphqlFields;
