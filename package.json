@@ -7,7 +7,8 @@
   "scripts": {
     "test": "mocha",
     "build": "tsc",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "pretest": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -31,6 +32,8 @@
   },
   "homepage": "https://github.com/robrichard/graphql-fields#readme",
   "devDependencies": {
+    "@types/graphql": "^14.0.4",
+    "@types/node": "^10.12.18",
     "graphql": "^14.0.2",
     "mocha": "^5.2.0",
     "typescript": "^3.2.2"
