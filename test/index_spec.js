@@ -2,7 +2,7 @@
 
 const graphql = require('graphql');
 const parse = require('graphql/language').parse;
-const graphqlFields = require('../index');
+const graphqlFields = require('../build/index');
 const assert = require('assert');
 const util = require('util');
 
