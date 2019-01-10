@@ -3,9 +3,10 @@
   "version": "2.0.1",
   "description": "Turns GraphQLResolveInfo into a map of the requested fields",
   "main": "build/index.js",
+  "types": "build/index.d.ts",
   "scripts": {
     "test": "mocha",
-    "build": "babel index.js --out-dir build",
+    "build": "tsc",
     "prepublishOnly": "npm run build"
   },
   "repository": {
@@ -30,11 +31,8 @@
   },
   "homepage": "https://github.com/robrichard/graphql-fields#readme",
   "devDependencies": {
-    "@babel/cli": "^7.1.2",
-    "@babel/core": "^7.1.2",
-    "@babel/plugin-transform-object-assign": "^7.0.0",
-    "@babel/preset-env": "^7.1.0",
     "graphql": "^14.0.2",
-    "mocha": "^5.2.0"
+    "mocha": "^5.2.0",
+    "typescript": "^3.2.2"
   }
 }
