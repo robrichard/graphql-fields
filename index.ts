@@ -16,17 +16,17 @@ import {
 // Types
 
 interface GraphQLFieldsOptions {
-processArguments: boolean;
-excludedFields: string[];
+    processArguments: boolean;
+    excludedFields: string[];
 }
 
 type ValueNodeWithValueField =
-| VariableNode
-| IntValueNode
-| FloatValueNode
-| StringValueNode
-| BooleanValueNode
-| EnumValueNode;
+    | VariableNode
+    | IntValueNode
+    | FloatValueNode
+    | StringValueNode
+    | BooleanValueNode
+    | EnumValueNode;
 
 // Type gaurds
 
@@ -54,35 +54,36 @@ const options: GraphQLFieldsOptions = {
 // Helpers
 
 function getSelections(ast: FieldNode) {
-if (ast &&
-    ast.selectionSet &&
-    ast.selectionSet.selections &&
-    ast.selectionSet.selections.length) {
-    return ast.selectionSet.selections;
-}
+    if (ast &&
+        ast.selectionSet &&
+        ast.selectionSet.selections &&
+        ast.selectionSet.selections.length) {
+        return ast.selectionSet.selections;
+    }
 
-return [];
+    return [];
 }
 
 function getAST(ast, info) {
-if (ast.kind === 'FragmentSpread') {
-    const fragmentName = ast.name.value;
-    return info.fragments[fragmentName];
-}
-return ast;
+    if (ast.kind === 'FragmentSpread') {
+        const fragmentName = ast.name.value;
+        return info.fragments[fragmentName];
+    }
+    return ast;
 }
 
 function getArguments(ast: FieldNode) {
     return ast.arguments!.map(argument => {
         const valueNode = argument.value;
-        const argumentValue = !isListValueNode(valueNode) ? (valueNode as any).value :
-            (valueNode as any).values.map(value => value.value);
+        const argumentValue = (!isListValueNode(valueNode)
+            ? (valueNode as any).value
+            : (valueNode as any).values.map(value => value.value));
 
         return {
-        [argument.name.value]: {
-            kind: argument.value.kind,
-            value: argumentValue
-        },
+            [argument.name.value]: {
+                kind: argument.value.kind,
+                value: argumentValue
+            },
         };
     });
 }
@@ -116,31 +117,34 @@ function getDirectiveResults(ast: SelectionNode, info: GraphQLResolveInfo) {
 function flattenAST(ast: FieldNode, info: GraphQLResolveInfo, obj: any = {}) {
     return getSelections(ast).reduce((flattened, a) => {
         if (a.directives && a.directives.length) {
-        const { shouldInclude, shouldSkip } = getDirectiveResults(a, info);
-        // field/fragment is not included if either the @skip condition is true or the @include condition is false
-        // https://facebook.github.io/graphql/draft/#sec--include
-        if (shouldSkip || !shouldInclude) {
-            return flattened;
-        }
-        }
-        if (isFieldNode(a)) {
-        const name = a.name.value;
-        if (options.excludedFields.indexOf(name) !== -1) {
-            return flattened;
-        }
-        if (flattened[name] && flattened[name] !== '__arguments') {
-            Object.assign(flattened[name], flattenAST(a, info, flattened[name]));
-        } else {
-            flattened[name] = flattenAST(a, info);
-        }
-        if (options.processArguments) {
-            // check if the current field has arguments
-            if (a.arguments && a.arguments.length) {
-            Object.assign(flattened[name], { __arguments: getArguments(a) });
+            const { shouldInclude, shouldSkip } = getDirectiveResults(a, info);
+            // field/fragment is not included if either the @skip condition is true or the @include condition is false
+            // https://facebook.github.io/graphql/draft/#sec--include
+            if (shouldSkip || !shouldInclude) {
+                return flattened;
             }
         }
+
+        if (isFieldNode(a)) {
+            const name = a.name.value;
+            if (options.excludedFields.indexOf(name) !== -1) {
+                return flattened;
+            }
+
+            if (flattened[name] && flattened[name] !== '__arguments') {
+                Object.assign(flattened[name], flattenAST(a, info, flattened[name]));
+            } else {
+                flattened[name] = flattenAST(a, info);
+            }
+
+            if (options.processArguments) {
+                // check if the current field has arguments
+                if (a.arguments && a.arguments.length) {
+                    Object.assign(flattened[name], { __arguments: getArguments(a) });
+                }
+            }
         } else {
-        flattened = flattenAST(getAST(a, info), info, flattened);
+            flattened = flattenAST(getAST(a, info), info, flattened);
         }
 
         return flattened;
