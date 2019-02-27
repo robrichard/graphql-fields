@@ -1,10 +1,8 @@
 'use strict';
 
 const graphql = require('graphql');
-const parse = require('graphql/language').parse;
 const graphqlFields = require('../index');
 const assert = require('assert');
-const util = require('util');
 
 describe('graphqlFields', () => {
     it('should flatten fragments', function (done) {
@@ -145,7 +143,6 @@ describe('graphqlFields', () => {
         }
         `;
 
-
         graphql.graphql(schema, query, null, {})
             .then(() => {
                 const expected = {
@@ -177,13 +174,13 @@ describe('graphqlFields', () => {
     describe('should respect include/skip directives when generating the field map', () => {
       let info = {};
       const schemaString = /* GraphQL*/ `
-            type Hobbie {
+            type Hobby {
                 name: String!
             }
             type Person {
                 name: String!
                 age: Int!
-                hobbies: [Hobbie!]
+                hobbies: [Hobby!]
             }
             type Query {
                 person: Person!
@@ -248,13 +245,13 @@ describe('graphqlFields', () => {
     describe('subfield argument parsing', function () {
         let info = {};
         const schemaString = /* GraphQL*/ `
-            type Hobbie {
+            type Hobby {
                 name: String!
             }
             type Person {
                 name (case: String): String!
                 age: Int!
-                hobbies(first: Int, sort: Boolean, categories: [String]): [Hobbie!]
+                hobbies(first: Int, sort: Boolean, categories: [String]): [Hobby!]
             }
             type Query {
                 person: Person!
@@ -382,7 +379,7 @@ describe('graphqlFields', () => {
                 });
         });
 
-        it('Should not exculde fields if not specified in options', function (done) {
+        it('Should not exclude fields if not specified in options', function (done) {
             const expected = {
                 name: {},
                 age: {},
