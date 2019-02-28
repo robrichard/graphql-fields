@@ -1,5 +1,12 @@
 # Changelog
 
+
+## 2.0.2 (2019-02-28)
+
+### Fixed
+
+- process arguments passed as variables
+
 ## 2.0.1 (2018-12-04)
 
 ### Fixed
