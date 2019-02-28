@@ -11,4 +11,4 @@ matrix:
 
 script:
 - |
-    yarn install && yarn run test --runInBand --no-watchman
+    yarn install && yarn run test
