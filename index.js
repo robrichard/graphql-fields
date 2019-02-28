@@ -41,9 +41,7 @@ function getArgumentValue(arg, info) {
         case 'Variable':
             return info.variableValues[arg.name.value];
         case 'ListValue':
-            return arg.values.map(function(argument) {
-                return getArgumentValue(argument, info);
-            });
+            return arg.values.map(argument => getArgumentValue(argument, info));
         default:
             return arg.value;
     }
