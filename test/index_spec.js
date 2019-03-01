@@ -242,7 +242,7 @@ describe('graphqlFields', () => {
             }).catch(done);
       });
     });
-    describe('subfield argument parsing', function () {
+    describe('subfield argument parsing', function() {
         let info = {};
         const schemaString = /* GraphQL*/ `
             type Hobby {
@@ -263,30 +263,122 @@ describe('graphqlFields', () => {
                 info = i;
                 return {
                     name: 'john doe',
-                    age: 42,
+                    age: 42
                 };
-            },
+            }
         };
-        const query = /* GraphQL */ `
-            {
-                person {
-                    name (case: "upper")
-                    age
-                    hobbies (first: 2, sort: true, categories: ["sports", "music"]) {
-                        name
+
+        it('should extract sub-field arguments of Variable type if options is provided', function(done) {
+            const variableValues = {
+                first: 50
+            };
+
+            const query = /* GraphQL */ `
+                query Query($first: Int) {
+                    person {
+                        hobbies(first: $first) {
+                            name
+                        }
                     }
                 }
-            }
-        `;
-        it('Should extract sub-field arguments if options is provided', function (done) {
+            `;
+
+            const expected = {
+                hobbies: {
+                    __arguments: [
+                        {
+                            first: {
+                                kind: 'Variable',
+                                value: 50
+                            }
+                        }
+                    ],
+                    name: {}
+                }
+            };
+
+            graphql
+                .graphql(schema, query, root, {}, variableValues)
+                .then(() => {
+                    const fields = graphqlFields(
+                        info,
+                        {},
+                        { processArguments: true }
+                    );
+                    assert.deepStrictEqual(fields, expected);
+                    done();
+                });
+        });
+
+        it('should extract sub-field arguments of ListValue type if options is provided', function(done) {
+            const variableValues = {
+                category: 'music'
+            };
+
+            const query = /* GraphQL */ `
+                query Query($category: String) {
+                    person {
+                        hobbies(categories: ["sports", $category]) {
+                            name
+                        }
+                    }
+                }
+            `;
+
+            const expected = {
+                hobbies: {
+                    __arguments: [
+                        {
+                            categories: {
+                                kind: 'ListValue',
+                                value: ['sports', 'music']
+                            }
+                        }
+                    ],
+                    name: {}
+                }
+            };
+
+            graphql
+                .graphql(schema, query, root, {}, variableValues)
+                .then(error => {
+                    const fields = graphqlFields(
+                        info,
+                        {},
+                        { processArguments: true }
+                    );
+                    assert.deepStrictEqual(fields, expected);
+                    done();
+                });
+        });
+
+        it('should extract sub-field arguments of default type if options is provided', function(done) {
+            const query = /* GraphQL */ `
+                {
+                    person {
+                        name(case: "upper")
+                        age
+                        hobbies(
+                            first: 2
+                            sort: true
+                            categories: ["sports", "music"]
+                        ) {
+                            name
+                        }
+                    }
+                }
+            `;
+
             const expected = {
                 name: {
-                    __arguments: [{
-                        case: {
-                            kind: 'StringValue',
-                            value: 'upper',
-                        },
-                    }],
+                    __arguments: [
+                        {
+                            case: {
+                                kind: 'StringValue',
+                                value: 'upper'
+                            }
+                        }
+                    ]
                 },
                 age: {},
                 hobbies: {
@@ -295,46 +387,64 @@ describe('graphqlFields', () => {
                         {
                             first: {
                                 kind: 'IntValue',
-                                value: '2',
+                                value: '2'
                             }
                         },
                         {
                             sort: {
                                 kind: 'BooleanValue',
-                                value: true,
+                                value: true
                             }
                         },
                         {
                             categories: {
                                 kind: 'ListValue',
-                                value: ['sports', 'music'],
+                                value: ['sports', 'music']
                             }
                         }
-                    ],
+                    ]
                 }
             };
-            graphql.graphql(schema, query, root, {})
-                .then(() => {
-                    const fields = graphqlFields(info, {}, { processArguments: true });
-                    assert.deepStrictEqual(fields, expected);
-                    done();
-                });
+            graphql.graphql(schema, query, root, {}).then(() => {
+                const fields = graphqlFields(
+                    info,
+                    {},
+                    { processArguments: true }
+                );
+                assert.deepStrictEqual(fields, expected);
+                done();
+            });
         });
 
-        it('should not parse arguments if not specified in options', function (done) {
+        it('should not parse arguments if not specified in options', function(done) {
+            const query = /* GraphQL */ `
+                {
+                    person {
+                        name(case: "upper")
+                        age
+                        hobbies(
+                            first: 2
+                            sort: true
+                            categories: ["sports", "music"]
+                        ) {
+                            name
+                        }
+                    }
+                }
+            `;
+
             const expected = {
                 name: {},
                 age: {},
                 hobbies: {
-                    name: {},
+                    name: {}
                 }
             };
-            graphql.graphql(schema, query, root, {})
-                .then(() => {
-                    const fields = graphqlFields(info);
-                    assert.deepStrictEqual(fields, expected);
-                    done();
-                })
+            graphql.graphql(schema, query, root, {}).then(() => {
+                const fields = graphqlFields(info);
+                assert.deepStrictEqual(fields, expected);
+                done();
+            });
         });
     });
     describe('excluded fields', function () {

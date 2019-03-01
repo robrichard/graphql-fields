@@ -23,10 +23,9 @@ function getAST(ast, info) {
     return ast;
 }
 
-function getArguments (ast) {
+function getArguments (ast, info) {
     return ast.arguments.map(argument => {
-        const argumentValue = argument.value.kind !== 'ListValue' ? argument.value.value :
-            argument.value.values.map(value => value.value);
+        const argumentValue = getArgumentValue(argument.value, info);
 
         return {
             [argument.name.value]: {
@@ -35,6 +34,17 @@ function getArguments (ast) {
             },
         };
     });
+}
+
+function getArgumentValue(arg, info) {
+    switch (arg.kind) {
+        case 'Variable':
+            return info.variableValues[arg.name.value];
+        case 'ListValue':
+            return arg.values.map(argument => getArgumentValue(argument, info));
+        default:
+            return arg.value;
+    }
 }
 
 function getDirectiveValue(directive, info) {
@@ -88,7 +98,7 @@ function flattenAST(ast, info, obj) {
             if (options.processArguments) {
                 // check if the current field has arguments
                 if (a.arguments && a.arguments.length) {
-                    Object.assign(flattened[name], { __arguments: getArguments(a) });
+                    Object.assign(flattened[name], { __arguments: getArguments(a, info) });
                 }
             }
         }
