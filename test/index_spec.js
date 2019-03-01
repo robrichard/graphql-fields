@@ -242,7 +242,7 @@ describe('graphqlFields', () => {
             }).catch(done);
       });
     });
-    describe('subfield argument parsing', function() {
+    describe('subfield argument parsing', function () {
         let info = {};
         const schemaString = /* GraphQL*/ `
             type Hobby {
@@ -268,7 +268,7 @@ describe('graphqlFields', () => {
             }
         };
 
-        it('should extract sub-field arguments of Variable type if options is provided', function(done) {
+        it('should extract sub-field arguments of Variable type if options is provided', function (done) {
             const variableValues = {
                 first: 50
             };
@@ -310,7 +310,7 @@ describe('graphqlFields', () => {
                 });
         });
 
-        it('should extract sub-field arguments of ListValue type if options is provided', function(done) {
+        it('should extract sub-field arguments of ListValue type if options is provided', function (done) {
             const variableValues = {
                 category: 'music'
             };
@@ -352,7 +352,7 @@ describe('graphqlFields', () => {
                 });
         });
 
-        it('should extract sub-field arguments of default type if options is provided', function(done) {
+        it('should extract sub-field arguments of default type if options is provided', function (done) {
             const query = /* GraphQL */ `
                 {
                     person {
@@ -416,7 +416,7 @@ describe('graphqlFields', () => {
             });
         });
 
-        it('should not parse arguments if not specified in options', function(done) {
+        it('should not parse arguments if not specified in options', function (done) {
             const query = /* GraphQL */ `
                 {
                     person {
