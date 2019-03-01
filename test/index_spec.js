@@ -174,13 +174,13 @@ describe('graphqlFields', () => {
     describe('should respect include/skip directives when generating the field map', () => {
       let info = {};
       const schemaString = /* GraphQL*/ `
-            type Hobby {
+            type Pet {
                 name: String!
             }
             type Person {
                 name: String!
                 age: Int!
-                hobbies: [Hobby!]
+                pets: [Pet!]
             }
             type Query {
                 person: Person!
@@ -202,7 +202,7 @@ describe('graphqlFields', () => {
                 person {
                     name @include(if: $shouldInclude)
                     age @include(if: false) @skip(if: false)
-                    hobbies {
+                    pets {
                         name
                     }
                 }
@@ -211,7 +211,7 @@ describe('graphqlFields', () => {
         graphql.graphql(schema, query, root, {}, { ["shouldInclude"]: false })
             .then(() => {
                 const expected = {
-                    hobbies: {
+                    pets: {
                       name: {}
                     }
                 };
@@ -225,7 +225,7 @@ describe('graphqlFields', () => {
                 person {
                     name @skip(if: $shouldSkip)
                     age
-                    hobbies {
+                    pets {
                         name @skip(if: true) @include(if: true)
                     }
                 }
@@ -235,7 +235,7 @@ describe('graphqlFields', () => {
             .then(() => {
                 const expected = {
                     age: {},
-                    hobbies: {}
+                    pets: {}
                 };
                 assert.deepStrictEqual(graphqlFields(info), expected);
                 done();
@@ -245,13 +245,13 @@ describe('graphqlFields', () => {
     describe('subfield argument parsing', function () {
         let info = {};
         const schemaString = /* GraphQL*/ `
-            type Hobby {
+            type Pet {
                 name: String!
             }
             type Person {
                 name (case: String): String!
                 age: Int!
-                hobbies(first: Int, sort: Boolean, categories: [String]): [Hobby!]
+                pets(first: Int, sort: Boolean, categories: [String]): [Pet!]
             }
             type Query {
                 person: Person!
@@ -276,7 +276,7 @@ describe('graphqlFields', () => {
             const query = /* GraphQL */ `
                 query Query($first: Int) {
                     person {
-                        hobbies(first: $first) {
+                        pets(first: $first) {
                             name
                         }
                     }
@@ -284,7 +284,7 @@ describe('graphqlFields', () => {
             `;
 
             const expected = {
-                hobbies: {
+                pets: {
                     __arguments: [
                         {
                             first: {
@@ -318,7 +318,7 @@ describe('graphqlFields', () => {
             const query = /* GraphQL */ `
                 query Query($category: String) {
                     person {
-                        hobbies(categories: ["sports", $category]) {
+                        pets(categories: ["sports", $category]) {
                             name
                         }
                     }
@@ -326,7 +326,7 @@ describe('graphqlFields', () => {
             `;
 
             const expected = {
-                hobbies: {
+                pets: {
                     __arguments: [
                         {
                             categories: {
@@ -358,7 +358,7 @@ describe('graphqlFields', () => {
                     person {
                         name(case: "upper")
                         age
-                        hobbies(
+                        pets(
                             first: 2
                             sort: true
                             categories: ["sports", "music"]
@@ -381,7 +381,7 @@ describe('graphqlFields', () => {
                     ]
                 },
                 age: {},
-                hobbies: {
+                pets: {
                     name: {},
                     __arguments: [
                         {
@@ -422,7 +422,7 @@ describe('graphqlFields', () => {
                     person {
                         name(case: "upper")
                         age
-                        hobbies(
+                        pets(
                             first: 2
                             sort: true
                             categories: ["sports", "music"]
@@ -436,7 +436,7 @@ describe('graphqlFields', () => {
             const expected = {
                 name: {},
                 age: {},
-                hobbies: {
+                pets: {
                     name: {}
                 }
             };
