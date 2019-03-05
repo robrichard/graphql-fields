@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.3 (2019-03-02)
+
+### Fixed
+
+- process object arguments
 
 ## 2.0.2 (2019-02-28)
 
