@@ -1,10 +1,8 @@
 'use strict';
 
 const graphql = require('graphql');
-const parse = require('graphql/language').parse;
 const graphqlFields = require('../index');
 const assert = require('assert');
-const util = require('util');
 
 describe('graphqlFields', () => {
     it('should flatten fragments', function (done) {
@@ -145,7 +143,6 @@ describe('graphqlFields', () => {
         }
         `;
 
-
         graphql.graphql(schema, query, null, {})
             .then(() => {
                 const expected = {
@@ -177,13 +174,13 @@ describe('graphqlFields', () => {
     describe('should respect include/skip directives when generating the field map', () => {
       let info = {};
       const schemaString = /* GraphQL*/ `
-            type Hobbie {
+            type Pet {
                 name: String!
             }
             type Person {
                 name: String!
                 age: Int!
-                hobbies: [Hobbie!]
+                pets: [Pet!]
             }
             type Query {
                 person: Person!
@@ -205,7 +202,7 @@ describe('graphqlFields', () => {
                 person {
                     name @include(if: $shouldInclude)
                     age @include(if: false) @skip(if: false)
-                    hobbies {
+                    pets {
                         name
                     }
                 }
@@ -214,7 +211,7 @@ describe('graphqlFields', () => {
         graphql.graphql(schema, query, root, {}, { ["shouldInclude"]: false })
             .then(() => {
                 const expected = {
-                    hobbies: {
+                    pets: {
                       name: {}
                     }
                 };
@@ -228,7 +225,7 @@ describe('graphqlFields', () => {
                 person {
                     name @skip(if: $shouldSkip)
                     age
-                    hobbies {
+                    pets {
                         name @skip(if: true) @include(if: true)
                     }
                 }
@@ -238,23 +235,92 @@ describe('graphqlFields', () => {
             .then(() => {
                 const expected = {
                     age: {},
-                    hobbies: {}
+                    pets: {}
                 };
                 assert.deepStrictEqual(graphqlFields(info), expected);
                 done();
             }).catch(done);
       });
     });
-    describe('subfield argument parsing', function() {
+    describe('subfield argument parsing', function () {
         let info = {};
         const schemaString = /* GraphQL*/ `
-            type Hobbie {
+            enum Species {
+                CANIS_LUPUS_FAMILIARIS
+                FELIS_CATUS
+            }
+            input SpeciesPredicatesInput {
+                eq: Species
+                in: [Species!]
+                neq: Species
+                nin: [Species!]
+                # etc
+            }
+            input FloatPredicatesInput {
+                eq: Float
+                gt: Float
+                gte: Float
+                lt: Float
+                lte: Float
+                # etc
+            }
+            input IDPredicatesInput {
+                eq: ID
+                in: [ID!]
+                neq: ID
+                nin: [ID!]
+                # etc
+            }
+            input IntPredicatesInput {
+                eq: Int
+                gt: Int
+                gte: Int
+                lt: Int
+                lte: Int
+                # etc
+            }
+            input SomeInput {
+                bool: Boolean
+                float: Float
+                int: Int
+                list: [String]
+            }
+            input StringPredicatesInput {
+                eq: String
+                in: [String!]
+                # etc
+            }
+            input PetPredicatesInput {
+                age: IntPredicatesInput
+                fixed: Boolean!
+                id: IDPredicatesInput
+                name: StringPredicatesInput
+                species: SpeciesPredicatesInput
+                weight: FloatPredicatesInput
+            }
+            type Pet {
+                age: Int!
+                fixed: Boolean!
+                id: ID!
                 name: String!
+                species: Species!
+                weight: Float!
+                nicknames: [String!]!
             }
             type Person {
                 name (case: String): String!
                 age: Int!
-                hobbies(first: Int, sort: Boolean, categories: [String]): [Hobbie!]
+                pets(
+                    id: ID,
+                    fixed: Boolean,
+                    name: String,
+                    nicknames: [String!],
+                    weight: Float,
+                    limit: Int,
+                    predicates: PetPredicatesInput,
+                    sort: [[String]],
+                    listOfSomeInput: [SomeInput]
+                ): [Pet!]!
             }
             type Query {
                 person: Person!
@@ -271,15 +337,15 @@ describe('graphqlFields', () => {
             }
         };
 
-        it('should extract sub-field arguments of Variable type if options is provided', function(done) {
+        it('should extract sub-field arguments of Variable type if options is provided', function (done) {
             const variableValues = {
-                first: 50
+                limit: 50
             };
 
             const query = /* GraphQL */ `
-                query Query($first: Int) {
+                query Query($limit: Int) {
                     person {
-                        hobbies(first: $first) {
+                        pets(limit: $limit) {
                             name
                         }
                     }
@@ -287,10 +353,10 @@ describe('graphqlFields', () => {
             `;
 
             const expected = {
-                hobbies: {
+                pets: {
                     __arguments: [
                         {
-                            first: {
+                            limit: {
                                 kind: 'Variable',
                                 value: 50
                             }
@@ -313,15 +379,15 @@ describe('graphqlFields', () => {
                 });
         });
 
-        it('should extract sub-field arguments of ListValue type if options is provided', function(done) {
+        it('should extract sub-field arguments of ListValue type if options is provided', function (done) {
             const variableValues = {
-                category: 'music'
+                extraNickname: 'Lucky',
             };
 
             const query = /* GraphQL */ `
-                query Query($category: String) {
+                query Query($extraNickname: String!) {
                     person {
-                        hobbies(categories: ["sports", $category]) {
+                        pets(nicknames: ["Fluffy", $extraNickname]) {
                             name
                         }
                     }
@@ -329,12 +395,12 @@ describe('graphqlFields', () => {
             `;
 
             const expected = {
-                hobbies: {
+                pets: {
                     __arguments: [
                         {
-                            categories: {
+                            nicknames: {
                                 kind: 'ListValue',
-                                value: ['sports', 'music']
+                                value: ['Fluffy', 'Lucky']
                             }
                         }
                     ],
@@ -355,16 +421,45 @@ describe('graphqlFields', () => {
                 });
         });
 
-        it('should extract sub-field arguments of default type if options is provided', function(done) {
+        it('should extract sub-field arguments of expected type if options is provided', function (done) {
             const query = /* GraphQL */ `
                 {
                     person {
                         name(case: "upper")
                         age
-                        hobbies(
-                            first: 2
-                            sort: true
-                            categories: ["sports", "music"]
+                        pets(
+                            id: "A",
+                            fixed: true,
+                            name: "Chopper",
+                            nicknames: ["Fluffy", "Sickem"],
+                            weight: 123.4,
+                            limit: 10,
+                            predicates: {
+                                age: {
+                                    gt: 2,
+                                    lt: 10,
+                                },
+                                fixed: false,
+                                id: {
+                                    nin: ["B", "C"],
+                                },
+                                name: {
+                                    eq: "Chopper",
+                                },
+                                species: {
+                                    in: [CANIS_LUPUS_FAMILIARIS, FELIS_CATUS],
+                                },
+                                weight: {
+                                    gt: 56.7,
+                                    lt: 98.7,
+                                },
+                            },
+                            sort: [["weight", "desc"], ["name", "asc"]],
+                            listOfSomeInput: [
+                                { bool: true },
+                                { float: 3.14 },
+                                { int: 42 },
+                            ]
                         ) {
                             name
                         }
@@ -384,25 +479,87 @@ describe('graphqlFields', () => {
                     ]
                 },
                 age: {},
-                hobbies: {
+                pets: {
                     name: {},
                     __arguments: [
                         {
-                            first: {
-                                kind: 'IntValue',
-                                value: '2'
+                            id: {
+                                kind: 'StringValue', // Why not an IDValue?
+                                value: 'A'
+                            },
+                        },
+                        {
+                            fixed: {
+                                kind: 'BooleanValue',
+                                value: true
+                            },
+                        },
+                        {
+                            name: {
+                                kind: 'StringValue',
+                                value: 'Chopper'
                             }
+                        },
+                        {
+                            nicknames: {
+                                kind: 'ListValue',
+                                value: ['Fluffy', 'Sickem']
+                            }
+                        },
+                        {
+                            weight: {
+                                kind: 'FloatValue',
+                                value: 123.4
+                            }
+                        },
+                        {
+                            limit: {
+                                kind: 'IntValue',
+                                value: 10
+                            }
+                        },
+                        {
+                            predicates: {
+                                kind: 'ObjectValue',
+                                value: {
+                                    age: {
+                                        gt: 2,
+                                        lt: 10,
+                                    },
+                                    fixed: false,
+                                    id: {
+                                        nin: ['B', 'C'],
+                                    },
+                                    name: {
+                                        eq: 'Chopper',
+                                    },
+                                    species: {
+                                        in: ['CANIS_LUPUS_FAMILIARIS', 'FELIS_CATUS'],
+                                    },
+                                    weight: {
+                                        gt: 56.7,
+                                        lt: 98.7,
+                                    },
+                                },
+                            },
                         },
                         {
                             sort: {
-                                kind: 'BooleanValue',
-                                value: true
+                                kind: 'ListValue',
+                                value: [
+                                    ['weight', 'desc'],
+                                    ['name', 'asc'],
+                                ]
                             }
                         },
                         {
-                            categories: {
+                            listOfSomeInput: {
                                 kind: 'ListValue',
-                                value: ['sports', 'music']
+                                value: [
+                                    { bool: true },
+                                    { float: 3.14 },
+                                    { int: 42 },
+                                ]
                             }
                         }
                     ]
@@ -419,16 +576,40 @@ describe('graphqlFields', () => {
             });
         });
 
-        it('should not parse arguments if not specified in options', function(done) {
+        it('should not parse arguments if not specified in options', function (done) {
             const query = /* GraphQL */ `
                 {
                     person {
                         name(case: "upper")
                         age
-                        hobbies(
-                            first: 2
-                            sort: true
-                            categories: ["sports", "music"]
+                        pets(
+                            id: "A"
+                            fixed: true,
+                            name: "Chopper",
+                            nicknames: ["Fluffy", "Sickem"],
+                            weight: 100,
+                            limit: 10
+                            predicates: {
+                                age: {
+                                    gt: 2
+                                    lt: 10
+                                }
+                                fixed: false
+                                id: {
+                                    nin: ["B", "C"]
+                                }
+                                name: {
+                                    eq: "Chopper"
+                                }
+                                species: {
+                                    in: [CANIS_LUPUS_FAMILIARIS, FELIS_CATUS]
+                                }
+                                weight: {
+                                    gt: 56.7
+                                    lt: 98.7
+                                }
+                            }
+                            sort: [["weight", "desc"], ["name", "asc"]]
                         ) {
                             name
                         }
@@ -439,7 +620,7 @@ describe('graphqlFields', () => {
             const expected = {
                 name: {},
                 age: {},
-                hobbies: {
+                pets: {
                     name: {}
                 }
             };
@@ -492,7 +673,7 @@ describe('graphqlFields', () => {
                 });
         });
 
-        it('Should not exculde fields if not specified in options', function (done) {
+        it('Should not exclude fields if not specified in options', function (done) {
             const expected = {
                 name: {},
                 age: {},

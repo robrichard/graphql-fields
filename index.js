@@ -23,7 +23,7 @@ function getAST(ast, info) {
     return ast;
 }
 
-function getArguments (ast, info) {
+function getArguments(ast, info) {
     return ast.arguments.map(argument => {
         const argumentValue = getArgumentValue(argument.value, info);
 
@@ -38,10 +38,22 @@ function getArguments (ast, info) {
 
 function getArgumentValue(arg, info) {
     switch (arg.kind) {
+        case 'FloatValue':
+            return parseFloat(arg.value);
+        case 'IntValue':
+            return parseInt(arg.value, 10);
         case 'Variable':
             return info.variableValues[arg.name.value];
         case 'ListValue':
             return arg.values.map(argument => getArgumentValue(argument, info));
+        case 'ObjectValue':
+            return arg.fields.reduce(
+                (argValue, objectField) => {
+                    argValue[objectField.name.value] = getArgumentValue(objectField.value, info);
+                    return argValue;
+                },
+                {},
+            );
         default:
             return arg.value;
     }
