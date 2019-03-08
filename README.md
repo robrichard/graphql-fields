@@ -35,7 +35,7 @@ module.exports = new GraphQLSchema({
                     type: UserType,
                     resolve(root, args, context, info) {
                         console.log(
-                            JSON.stringify(graphqlFields(info), null, 2);
+                            JSON.stringify(graphqlFields(info), null, 2)
                         );
                         ...
                     }
