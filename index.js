@@ -110,7 +110,12 @@ function flattenAST(ast, info, obj) {
             if (options.processArguments) {
                 // check if the current field has arguments
                 if (a.arguments && a.arguments.length) {
-                    Object.assign(flattened[name], { __arguments: getArguments(a, info) });
+                    const __arguments = [
+                        ...(flattened[name].__arguments ? flattened[name].__arguments : []),
+                        ...getArguments(a, info),
+                    ]
+
+                    Object.assign(flattened[name], { __arguments });
                 }
             }
         }

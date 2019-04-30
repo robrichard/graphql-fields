@@ -425,7 +425,8 @@ describe('graphqlFields', () => {
             const query = /* GraphQL */ `
                 {
                     person {
-                        name(case: "upper")
+                        upperName: name(case: "upper")
+                        lowerName: name(case: "lower")
                         age
                         pets(
                             id: "A",
@@ -474,6 +475,12 @@ describe('graphqlFields', () => {
                             case: {
                                 kind: 'StringValue',
                                 value: 'upper'
+                            }
+                        },
+                        {
+                            case: {
+                                kind: 'StringValue',
+                                value: 'lower'
                             }
                         }
                     ]
