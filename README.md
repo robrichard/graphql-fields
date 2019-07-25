@@ -127,6 +127,28 @@ Most of the time we don't need `__typename` to be sent to backend/rest api, we c
 const graphqlFields = require('graphql-fields');
 const fieldsWithoutTypeName = graphqlFields(info, {}, { excludedFields: ['__typename'] });
 ```
+### Include alias name 
+This option returns alias with field name:
+```javascript
+const graphqlFields = require('graphql-fields');
+const fieldsWithoutTypeName = graphqlFields(info, {}, { includeAliasName: true });
+```
+Request:
+```graphql
+{
+  person {
+    aliasName: name
+  }
+}
+```
+
+Parsed `info` object:
+```javascript
+{
+  aliasName:name: {}
+}
+```
+
 ## Why
 An underlying REST api may only return fields based on query params.
 ```graphql
