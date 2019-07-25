@@ -687,6 +687,7 @@ describe('graphqlFields', () => {
                 })
         });
     });
+    
     describe('include alias name', function () {
         let info = {};
         const schemaString = /* GraphQL*/ `
@@ -713,7 +714,7 @@ describe('graphqlFields', () => {
                 }
             }
         `;
-        
+
         it('Should return alias name', function (done) {
             const expected = {};
             expected['aliasName:name'] = {};
