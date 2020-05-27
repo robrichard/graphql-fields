@@ -34,7 +34,7 @@
     "@babel/core": "^7.1.2",
     "@babel/plugin-transform-object-assign": "^7.0.0",
     "@babel/preset-env": "^7.1.0",
-    "graphql": "^14.0.2",
+    "graphql": "^15.0.0",
     "mocha": "^5.2.0"
   }
 }
