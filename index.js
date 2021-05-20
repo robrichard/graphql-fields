@@ -98,7 +98,14 @@ function flattenAST(ast, info, obj) {
         if (isFragment(a)) {
             flattened = flattenAST(getAST(a, info), info, flattened);
         } else {
-            const name = a.name.value;
+            let name;
+
+            if(options.includeAliasName) {
+                name = a.alias ? a.alias.value + ':' + a.name.value : a.name.value;
+            } else {
+                name =  a.name.value;
+            }
+
             if (options.excludedFields.indexOf(name) !== -1) {
               return flattened;
             }
@@ -119,10 +126,11 @@ function flattenAST(ast, info, obj) {
     }, obj);
 }
 
-module.exports = function graphqlFields(info, obj = {}, opts = { processArguments: false }) {
+module.exports = function graphqlFields(info, obj = {}, opts = { processArguments: false, includeAliasName: false }) {
     const fields = info.fieldNodes || info.fieldASTs;
     options.processArguments = opts.processArguments;
     options.excludedFields = opts.excludedFields || [];
+    options.includeAliasName = opts.includeAliasName;
     return fields.reduce((o, ast) => {
             return flattenAST(ast, info, o);
     }, obj) || {};
