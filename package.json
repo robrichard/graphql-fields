@@ -30,11 +30,10 @@
   },
   "homepage": "https://github.com/robrichard/graphql-fields#readme",
   "devDependencies": {
-    "@babel/cli": "^7.1.2",
-    "@babel/core": "^7.1.2",
-    "@babel/plugin-transform-object-assign": "^7.0.0",
+    "@babel/cli": "^7.15.7",
+    "@babel/core": "^7.15.5",
     "@babel/preset-env": "^7.1.0",
     "graphql": "^15.0.0",
-    "mocha": "^5.2.0"
+    "mocha": "^9.1.1"
   }
 }
