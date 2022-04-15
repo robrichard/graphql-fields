@@ -1,3 +1,7 @@
+# Deprecation Notice
+
+There are many use-cases that are not supported by this library, it is recommended to use something else like [graphql-parse-resolve-info](https://www.npmjs.com/search?q=graphql-parse-resolve-info)
+
 # graphql-fields
 Turns GraphQLResolveInfo into a map of the requested fields. Flattens all fragments and duplicated fields into a neat object to easily see which fields were requested at any level. Takes into account any `@include` or `@skip` directives, excluding fields/fragments which are `@include(if: $false)` or `@skip(if: $true)`.
 
