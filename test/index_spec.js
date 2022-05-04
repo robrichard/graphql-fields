@@ -687,4 +687,57 @@ describe('graphqlFields', () => {
                 })
         });
     });
+    
+    describe('include alias name', function () {
+        let info = {};
+        const schemaString = /* GraphQL*/ `
+            type Person {
+                name: String!
+            }
+            type Query {
+                person: Person!
+            }
+        `;
+        const schema = graphql.buildSchema(schemaString);
+        const root = {
+            person(args, ctx, i) {
+                info = i;
+                return {
+                    name: 'john doe',
+                };
+            },
+        };
+        const query = /* GraphQL */ `
+            {
+                person {
+                    aliasName: name
+                }
+            }
+        `;
+
+        it('Should return alias name', function (done) {
+            const expected = {};
+            expected['aliasName:name'] = {};
+
+            graphql.graphql(schema, query, root, {})
+                .then(() => {
+                    const fields = graphqlFields(info, {}, { includeAliasName: true });
+                    assert.deepStrictEqual(fields, expected);
+                    done();
+                });
+        });
+
+        it('Should not return alias name', function (done) {
+            const expected = {
+                name: {}
+            };
+
+            graphql.graphql(schema, query, root, {})
+                .then(() => {
+                    const fields = graphqlFields(info, {}, { includeAliasName: false });
+                    assert.deepStrictEqual(fields, expected);
+                    done();
+                });
+        });
+    });
 });
