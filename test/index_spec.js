@@ -576,6 +576,141 @@ describe('graphqlFields', () => {
             });
         });
 
+        it('should extract sub-field arguments in an object instead of an array if options.processArguments === "compact"', function (done) {
+          const query = /* GraphQL */ `
+              {
+                  person {
+                      name(case: "upper")
+                      age
+                      pets(
+                          id: "A",
+                          fixed: true,
+                          name: "Chopper",
+                          nicknames: ["Fluffy", "Sickem"],
+                          weight: 123.4,
+                          limit: 10,
+                          predicates: {
+                              age: {
+                                  gt: 2,
+                                  lt: 10,
+                              },
+                              fixed: false,
+                              id: {
+                                  nin: ["B", "C"],
+                              },
+                              name: {
+                                  eq: "Chopper",
+                              },
+                              species: {
+                                  in: [CANIS_LUPUS_FAMILIARIS, FELIS_CATUS],
+                              },
+                              weight: {
+                                  gt: 56.7,
+                                  lt: 98.7,
+                              },
+                          },
+                          sort: [["weight", "desc"], ["name", "asc"]],
+                          listOfSomeInput: [
+                              { bool: true },
+                              { float: 3.14 },
+                              { int: 42 },
+                          ]
+                      ) {
+                          name
+                      }
+                  }
+              }
+          `;
+
+          const expected = {
+              name: {
+                  __arguments: {
+                      case: {
+                          kind: 'StringValue',
+                          value: 'upper'
+                      }
+                  }
+              },
+              age: {},
+              pets: {
+                  name: {},
+                  __arguments: {
+                      id: {
+                          kind: 'StringValue', // Why not an IDValue?
+                          value: 'A'
+                      },
+                      fixed: {
+                          kind: 'BooleanValue',
+                          value: true
+                      },
+                      name: {
+                          kind: 'StringValue',
+                          value: 'Chopper'
+                      },
+                      nicknames: {
+                          kind: 'ListValue',
+                          value: ['Fluffy', 'Sickem']
+                      },
+                      weight: {
+                          kind: 'FloatValue',
+                          value: 123.4
+                      },
+                      limit: {
+                          kind: 'IntValue',
+                          value: 10
+                      },
+                      predicates: {
+                          kind: 'ObjectValue',
+                          value: {
+                              age: {
+                                  gt: 2,
+                                  lt: 10,
+                              },
+                              fixed: false,
+                              id: {
+                                  nin: ['B', 'C'],
+                              },
+                              name: {
+                                  eq: 'Chopper',
+                              },
+                              species: {
+                                  in: ['CANIS_LUPUS_FAMILIARIS', 'FELIS_CATUS'],
+                              },
+                              weight: {
+                                  gt: 56.7,
+                                  lt: 98.7,
+                              },
+                          },
+                      },
+                      sort: {
+                          kind: 'ListValue',
+                          value: [
+                              ['weight', 'desc'],
+                              ['name', 'asc'],
+                          ]
+                      },
+                      listOfSomeInput: {
+                          kind: 'ListValue',
+                          value: [
+                              { bool: true },
+                              { float: 3.14 },
+                              { int: 42 },
+                          ]
+                      }
+                  }
+              }
+          };
+          graphql.graphql(schema, query, root, {}).then(() => {
+              const fields = graphqlFields(
+                  info,
+                  {},
+                  { processArguments: "compact" }
+              );
+              assert.deepStrictEqual(fields, expected);
+              done();
+          });
+      });
+
         it('should not parse arguments if not specified in options', function (done) {
             const query = /* GraphQL */ `
                 {

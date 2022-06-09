@@ -23,16 +23,29 @@ function getAST(ast, info) {
     return ast;
 }
 
-function getArguments(ast, info) {
-    return ast.arguments.map(argument => {
-        const argumentValue = getArgumentValue(argument.value, info);
+function getArguments(ast, info, compact = false) {
+    if (compact) {
+        return ast.arguments.reduce((total, argument) => {
+            const argumentValue = getArgumentValue(argument.value, info);
 
-        return {
-            [argument.name.value]: {
+            total[argument.name.value] = {
                 kind: argument.value.kind,
                 value: argumentValue
-            },
-        };
+            };
+
+            return total;
+        }, {});
+    }
+
+    return ast.arguments.map(argument => {
+      const argumentValue = getArgumentValue(argument.value, info);
+
+      return {
+          [argument.name.value]: {
+              kind: argument.value.kind,
+              value: argumentValue
+          },
+      };
     });
 }
 
@@ -110,7 +123,7 @@ function flattenAST(ast, info, obj) {
             if (options.processArguments) {
                 // check if the current field has arguments
                 if (a.arguments && a.arguments.length) {
-                    Object.assign(flattened[name], { __arguments: getArguments(a, info) });
+                    Object.assign(flattened[name], { __arguments: getArguments(a, info, options.processArguments === 'compact') });
                 }
             }
         }
